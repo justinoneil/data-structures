@@ -26,10 +26,8 @@ void multiples(struct node *list, int n) {
 }
 
 int main(void) {
-  struct node *myList = listnew(6), *otherList = listnew(3);
-  int i;
-  int size;
-
+  struct node *myList = listnew(6), *otherList = listnew(3), 
+    *copyList;
   
   multiples(myList, 3);
   multiples(otherList, 2);
@@ -51,9 +49,25 @@ int main(void) {
   printf("Data in my list:\n");
   print_list(myList);
 
-  // Cleanup
-  listfree(myList); // also takes care of otherList (and its copy)
-  myList = otherList = NULL; // don't leave dangling pointers!
+  // Try deleting individual elements
+  printf("Deleting element 2 of my list\n");
+  listdelelem(myList, 2);
+  print_list(myList);
+  
+  printf("Deleting element 0 of my list\n");
+  myList = listdelelem(myList, 0);
+  print_list(myList);
+
+  printf("Copying my list.\n");
+  copyList = listcopy(myList);
+  printf("Deleting my list.\n");
+  listfree(myList);
+  myList = otherList = NULL;
+  printf("Contents of copy list:\n");
+  print_list(copyList);
+
+  listfree(copyList);
+  copyList = NULL;
 
   return 0;
 }

@@ -130,3 +130,20 @@ void listsetdata(struct node *head, int index, int ndata) {
   // go deeper on a sub list
   else listsetdata(head->next, index-1, ndata);
 }
+
+/********************************************************************
+ * Delete element at index.  Returns pointer to the head.  You will
+ * need this if you want to delete the zeroeth element in the list as
+ * the old list pointer will point to a nonexistant head
+ ********************************************************************/
+struct node *listdelelem(struct node *head, int index) {
+  if (index == 0) {
+    struct node *old = head;
+    head = head->next;
+    free(old);
+    return head;
+  }
+  head->next = listdelelem(head->next, index-1);
+  return head;
+}
+  
