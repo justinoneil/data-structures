@@ -1,7 +1,7 @@
 list.h
 ======
 
-##structs:
+###structs:
  * node
    * int data - the value stored in thi list element
    * struct node *next - pointer to the next node
@@ -11,7 +11,7 @@ Any node can be treated as a list head, but be careful not to lose track of the 
 list.c
 ======
 
-##functions:
+###functions:
  * struct node *listnew(int) - dynamically allocates a new list with int number of elements.
  * struct node *listcopy(struct node *) - dynamically allocates a new list with data copied the argument.
  * void listfree(struct node *) - frees all of the element linked from struct node *, including itself.
