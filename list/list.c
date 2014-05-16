@@ -30,7 +30,7 @@ struct node *listcopy(const struct node *head) {
 }
   
 /***********************************************************
- * Deallocate a list.  Remember to set your pointer to NULL.
+ * Deallocate a list.  Remember to set your pointer to NULL.  
  ***********************************************************/
 void listfree(struct node *head) {
   if (head->next != NULL)
