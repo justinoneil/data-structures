@@ -20,6 +20,7 @@ list.c
  * `void listinsert(struct node *, int, struct node *)` - links the second list to the first list before position int.  Link the rest of the first list to the end of the second list.
  * `void listinsertcopy(struct node *, int, struct node *)` - inserts a copy of the second list in the second list at position int.
  * `size_t listsize(struct node *)` - returns the number of elements in the list.
+ * `struct node *listgetnode(struct node *, int) - returns a pointer to the node at index int.  Returns NULL if index is negative or out of range.
  * `int listgetdata(struct node *, int)` - returns the data in the list at postition int.
  * `void listsetdata(struct node *, int, int)` - sets the data in the list at the first int postition to the second int data.
  * `struct node *listdelelem(struct node *, int)` - unlinks and frees the node at postition int from the list.  Returns the head pointer for cases when you want to delete the first element from a list.
