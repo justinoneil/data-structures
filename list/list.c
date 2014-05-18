@@ -6,7 +6,7 @@
  * Allocate a new list with n elements and initialize data to 0.
  ***************************************************************/
 struct node *listnew(size_t n) {
-  if (n == 0)
+  if (n <= 0)
     return NULL;
 
   struct node *head = (struct node *)malloc(sizeof(struct node));
@@ -33,56 +33,72 @@ struct node *listcopy(const struct node *head) {
  * Deallocate a list.  Remember to set your pointer to NULL.  
  ***********************************************************/
 void listfree(struct node *head) {
-  if (head->next != NULL)
+  if (head == NULL) ; // Nothing to free
+  else {
     listfree(head->next);
-  free(head);
+    free(head);
+  }
 }
 
 /********************************************************************
  * Link tail to the end of head (be careful about using tail from now
- * on, it is part of the chain of head!)
+ * on, it is part of the chain of head!).  Returns head pointer.  If
+ * head is null, returns tail pointer.
  ********************************************************************/
-void listappend(struct node *head, struct node *tail) {
-  if (head->next == NULL)
-    head->next = tail;
+struct node *listappend(struct node *head, struct node *tail) {
+  if (head == NULL) head = tail; // return tail if head is null
+  else if (head->next == NULL) head->next = tail;
   else listappend(head->next, tail);
+  return head;
 }
 
 /*********************************************************************
  * Same as listappend, but makes a copy of tail to avoid affecting the
- * original.
+ * original.  Returns head pointer.  If head is null, this is a
+ * pointer to the copy of tail.
  *********************************************************************/
-void listappendcopy(struct node *head, const struct node *tail) {
-  listappend(head, listcopy(tail));
+struct node *listappendcopy(struct node *head, const struct node *tail) {
+  return listappend(head, listcopy(tail));
 }
 
 /*********************************************************************
  * Links insertant to head at index, the end of insertant links to the
- * remainder of head.  Be very careful not to link your lists in a
- * circle (use listinsertcopy if you do not want to affect the list
- * you are inserting here).  Do not insert out of bounds (BAD)!
+ * remainder of head.  Be careful not to link your lists in a circle
+ * (use listinsertcopy if you do not want to affect the list you are
+ * inserting here).  Returns pointer to head.  This is useful for
+ * cases when you are inserting at the beginning of a list.  Otherwise
+ * return value may be safely discarded.
  *********************************************************************/
-void listinsert(struct node *head, int index, struct node *insertant) {
-  if (index == 0)
-    // insertant is the head here (index 0).
-    // Append the rest of the original head.
+struct node *listinsert(struct node *head, int index, struct node *insertant) {
+  // negative index or null insertant
+  if (index < 0 || !insertant) ;  // negative index or null insertant
+  // insert at the beginning of the list
+  else if (index == 0) { 
     listappend(insertant, head);
-  else
-    // recurse to next element
-    listinsert(head->next, index-1, insertant);
-
-  // fix link on the way out
-  if (index == 1)
-    // insertant starts at index 1 from this head.  It should be linked next.
+    head = insertant;
+  }
+  // insert at next element
+  else if (index == 1) { 
+    listappend(insertant, head->next);
     head->next = insertant;
+  }
+  // recurse on sub list
+  else if (head) 
+    listinsert(head->next, index-1, insertant);
+  // relavent for inserting at the beginning.
+  return head;
 }
 
 /************************************************************
  * same as listinsert, but makes a copy of insertant to avoid
  * affecting the original list.
  ************************************************************/
-void listinsertcopy(struct node *head, int index, const struct node *insertant) {
-  listinsert(head, index, listcopy(insertant));
+struct node *listinsertcopy(struct node *head, int index, const struct node *insertant) {
+  // don't make a copy if index is out of bounds anyway.
+  // Allow an empty head if the caller specified the index as 0
+  if (listgetnode(head, index) || index == 0)
+    head = listinsert(head, index, listcopy(insertant));
+  return head;
 }
 
 /*********************************************************************
@@ -95,55 +111,47 @@ size_t listsize(const struct node *head) {
   return (size_t)(listsize(head->next)+1);
 }
 
-/****************************************************************
- * Get data value of given list at given index.  Do not go out of
- * bounds! (bad things will happen.)
- ****************************************************************/
+/******************************************************************
+ * Get a pointer to the node at index in the list starting at head.
+ ******************************************************************/
+struct node *listgetnode(struct node *head, int index) {
+  if (head == NULL || index < 0) return NULL;
+  else if (index == 0) return head;
+  return listgetnode(head->next, index-1);
+}
+
+/*****************************************************************
+ * Get data value of given list at given index.  Return garbage if
+ * index out of range
+ *****************************************************************/
 int listgetdata(const struct node *head, int index) {
-  if (index == 0) // Reached index
-    return head->data;
-  return (listgetdata(head->next, index-1));
+  struct node *elem = listgetnode(head, index);
+  if (elem) return elem->data;
+  return; // caller asked for an element out of bounds, will get garbage.
 }
-
-// Decided against saving the caller from being stupid
-/*
-int listsetdata(struct node *head, int index, int ndata) {
-  if (head == NULL) // Got all the way to the end without exausting index!
-    return 1;       // throw an error code (no data set)
-
-  if (index == 0) { // Finally
-    head->data = ndata; // set value
-    return 0; // return success
-  }
-  // Go deeper (and propogate error code back up to caller)
-  return listsetdata(head->next, index-1, ndata);
-}
-*/
 
 /***************************************************************
  * Set the data value of the index of a given list to a new data
- * value.  Do not go out of bounds! (bad things will happen.)
+ * value.  Does nothing if out of bounds.
  ***************************************************************/
-void listsetdata(struct node *head, int index, int ndata) {
-  if (index == 0) // This is it
-    head->data = ndata; // set value
-  // go deeper on a sub list
-  else listsetdata(head->next, index-1, ndata);
+void listsetdata(struct node *head, int index, int data) {
+  struct node *elem = listgetnode(head, index);
+  if (elem) elem->data = data;
 }
 
 /********************************************************************
  * Delete element at index.  Returns pointer to the head.  You will
  * need this if you want to delete the zeroeth element in the list as
- * the old list pointer will point to a nonexistant head
+ * the old list pointer will point to a nonexistant head.
  ********************************************************************/
 struct node *listdelelem(struct node *head, int index) {
-  if (index == 0) {
+  if (index < 0 || !head) ; // index out of range or null head
+  else if (index == 0) {    // this is the element to delete
     struct node *old = head;
     head = head->next;
     free(old);
-    return head;
   }
-  head->next = listdelelem(head->next, index-1);
+  else // recurse
+    head->next = listdelelem(head->next, index-1);
   return head;
 }
-  
